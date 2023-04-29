@@ -20,6 +20,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    // https://mvnrepository.com/artifact/io.projectreactor/reactor-test
+    testImplementation("io.projectreactor:reactor-test:3.5.5")
+
 
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
     implementation("org.springframework.boot:spring-boot-starter-validation:3.0.6")
@@ -27,7 +30,10 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webflux
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.0.6")
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-elasticsearch
-    implementation("org.springframework.data:spring-data-elasticsearch:5.0.5")
+    implementation("org.springframework.data:spring-data-elasticsearch:5.0.3")
+
+
+
 
     // annotaion setting
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
