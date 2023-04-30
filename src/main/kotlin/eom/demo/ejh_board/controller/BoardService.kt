@@ -49,4 +49,9 @@ interface BoardService {
                   @PathVariable(name = "page") page: Int,
                   @PathVariable(name = "limit") limit: Int): Mono<Pagination<Board>>
 
+    @GetMapping(
+        value = ["/api/v1/board/aggs"]
+    )
+    fun aggsBoard(@RequestHeader headers: HttpHeaders): Mono<Any>
+
 }

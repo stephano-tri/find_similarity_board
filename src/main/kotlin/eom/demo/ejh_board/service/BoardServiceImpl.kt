@@ -1,5 +1,6 @@
 package eom.demo.ejh_board.service
 
+import co.elastic.clients.util.MapBuilder
 import eom.demo.ejh_board.controller.BoardService
 import eom.demo.ejh_board.exception.InvalidInputException
 import eom.demo.ejh_board.exception.NotFoundException
@@ -40,7 +41,9 @@ class BoardServiceImpl(
         return if(headers.isNotEmpty()){
             operations.search(queries.loadBoardById(id), BoardDocument::class.java)
                 .elementAt(0)
-                .flatMap { it.content.convert2Pojo().toMono() }
+                .flatMap {
+                    it.content.convert2Pojo().toMono()
+                }
         } else { InvalidInputException("유효하지 않은 요청 형식입니다.").toMono() }
     }
 
@@ -100,6 +103,16 @@ class BoardServiceImpl(
         } else { InvalidInputException("유효하지 않은 요청 형식입니다.").toMono() }
     }
 
+    override fun aggsBoard(headers : HttpHeaders) : Mono<Any> {
+        return if(headers.isNotEmpty()){
+            requestService.loadCount("similarity.board")
+                .flatMap { it.count.toMono() }
+                .flatMap { cnt ->
+                    loadRelatedWords((cnt * 0.4).toInt())
+                }
+        } else { InvalidInputException("유효하지 않은 요청 형식입니다.").toMono() }
+    }
+
     /**
      * @description 게시물 등록 , 수정시 유사성 높은 게시물을 연결합니다
      */
@@ -117,4 +130,35 @@ class BoardServiceImpl(
         ))
     }
 
+    fun loadRelatedWords(fortyPercentage: Int) : Mono<List<String>> {
+       return queries.loadHighFrequencyWords(1).toMono()
+                    .flatMap { reqBody ->
+                        requestService.searchHighFrequencyWords("similarity.board", reqBody)
+                            .flatMap { it["aggregations"].toMono() }
+                            .flatMap {
+                                val topWords = it as Map<String, Any>
+                                val buckets = topWords["top_words"] as Map<String, Any>
+                                buckets["buckets"].toMono()
+                            }
+                            .flatMap { buckets ->
+                                val bucketList = buckets as List<Map<String, Any>>
+                                val words = bucketList.toList()
+                                words.toMono()
+                            }
+                            .flatMapIterable { it }
+                            .flatMap { word ->
+                                val key = word["key"] as String
+                                val docCount = word["doc_count"] as Int
+                                if(docCount <= fortyPercentage){
+                                    key.toMono()
+                                }
+                                else {
+                                    Mono.empty()
+                                }
+                            }
+                            .collectList()
+                    }
+    }
+
 }
+

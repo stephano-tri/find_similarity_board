@@ -3,6 +3,7 @@ package eom.demo.ejh_board
 import eom.demo.ejh_board.controller.BoardService
 import eom.demo.ejh_board.persistence.BoardDocument
 import eom.demo.ejh_board.seed.Boards
+import eom.demo.ejh_board.service.BoardServiceImpl
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -18,7 +19,7 @@ import reactor.test.StepVerifier
 class EjhBoardApplicationTests {
 
     @Autowired
-    lateinit var boardService: BoardService
+    lateinit var boardService: BoardServiceImpl
     @Autowired
     lateinit var operations : ReactiveElasticsearchOperations
 
@@ -36,6 +37,14 @@ class EjhBoardApplicationTests {
     }
 
     @Test
+    fun loadWords(){
+        StepVerifier.create(boardService.loadHighFrequencyWords())
+            .expectSubscription()
+            .verifyComplete()
+    }
+
+    @Test
+    @Disabled
     fun dataSeeding() {
         val boards = Boards().boardTestData
         StepVerifier.create(boardService.createBoard(httpHeaders, boards))
