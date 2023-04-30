@@ -43,5 +43,8 @@ class BoardQuery(
             .build()
     }
 
+    fun loadHighFrequencyWords(minDocCount: Long): NativeQuery {
+        TODO("aggregation query needed")
+    }
 
 }
