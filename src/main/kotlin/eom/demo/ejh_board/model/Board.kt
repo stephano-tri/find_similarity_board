@@ -2,6 +2,7 @@ package eom.demo.ejh_board.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import eom.demo.ejh_board.persistence.BoardDocument
+import eom.demo.ejh_board.persistence.BoardReferredDocument
 import jakarta.validation.constraints.*
 
 data class Board(
@@ -13,6 +14,7 @@ data class Board(
     @field:JsonProperty("views") @field:Positive val views: Int? = 0,
     @field:JsonProperty("likes") @field:Positive val likes: Int? = 0,
     @field:JsonProperty("dislikes") @field:Positive val dislikes: Int? = 0,
+    @field:JsonProperty("referred") val referred : List<BoardReferredDocument>? = null,
 //    @field:JsonProperty("version") @field:Positive val version: Long? = null,
     ){
     fun convert2Entity(board: Board? = null): BoardDocument {
@@ -24,7 +26,8 @@ data class Board(
             views = this.views ?: 0,
             likes = this.likes ?: 0,
             dislikes = this.dislikes ?: 0,
-//            version = this.version ?: 0
+//            version = this.version ?: 0,
+            statement = "active"
         )
     }
 

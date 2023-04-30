@@ -1,10 +1,10 @@
 elastic:
-  host: 103.218.159.37
+  host: localhost
   port: 9200
 
 spring:
   elasticsearch:
-    uris: 103.218.159.37:9200
+    uris: localhost:9200
 
 logging:
   level:
@@ -21,4 +21,4 @@ logging:
               ReactiveElasticsearchRestTemplate: trace
 
 server:
-  port: 4382
+  port: 4383

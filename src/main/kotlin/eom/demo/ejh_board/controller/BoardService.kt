@@ -1,6 +1,7 @@
 package eom.demo.ejh_board.controller
 
 import eom.demo.ejh_board.model.Board
+import eom.demo.ejh_board.model.Pagination
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.validation.annotation.Validated
@@ -10,6 +11,12 @@ import reactor.core.publisher.Mono
 
 @RestController
 interface BoardService {
+
+    @GetMapping(
+        value = ["/api/v1/board/{id}"],
+        produces = ["application/json"])
+    fun loadBoard(@RequestHeader headers: HttpHeaders,
+                  @PathVariable id: String): Mono<Board>
 
     @PostMapping(
         value = ["/api/v1/board"],
@@ -33,12 +40,13 @@ interface BoardService {
 
     @GetMapping(
         value = [
-            "/api/v1/board/list/{page}/{renderItem}",
+            "/api/v1/board/list/{page}/{limit}",
             "/api/v1/board/list/{page}",
             "/api/v1/board/list"
         ],
         produces = ["application/json"])
     fun listBoard(@RequestHeader headers: HttpHeaders,
                   @PathVariable(name = "page") page: Int,
-                  @PathVariable(name = "renderItem") renderItem: Int): Flux<Board>
+                  @PathVariable(name = "limit") limit: Int): Mono<Pagination<Board>>
+
 }

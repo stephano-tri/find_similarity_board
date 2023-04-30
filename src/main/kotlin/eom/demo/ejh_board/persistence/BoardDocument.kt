@@ -24,6 +24,7 @@ data class BoardDocument(
     val dislikes: Int,
     var created : Long? = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli(),
     var modified : Long? = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli(),
+    var statement: String
 //    @Version var version: Long? = null
 ) {
     fun convert2Pojo(boardEntity: BoardDocument? = null): Board {
