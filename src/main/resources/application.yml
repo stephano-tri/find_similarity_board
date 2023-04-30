@@ -8,17 +8,9 @@ spring:
 
 logging:
   level:
-    com:
-      example: debug
-    sql: trace
-    org:
-      springframework:
-        data:
-          elasticsearch:
-            core:
-              ReactiveElasticsearchTemplate: trace
-              ReactiveElasticsearchClient: trace
-              ReactiveElasticsearchRestTemplate: trace
+    root: INFO
+    co.kr.sizl: DEBUG
+    org.springframework.data.elasticsearch.client.WIRE: trace
 
 server:
   port: 4383

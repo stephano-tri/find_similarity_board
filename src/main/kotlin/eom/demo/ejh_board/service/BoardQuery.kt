@@ -1,9 +1,14 @@
 package eom.demo.ejh_board.service
 
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation
+import co.elastic.clients.elasticsearch._types.aggregations.TermsAggregation
+import co.elastic.clients.util.MapBuilder
 import org.elasticsearch.client.RestClient
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder
 import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchClient
+import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchTemplate
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchOperations
 import org.springframework.stereotype.Component
 
@@ -43,5 +48,12 @@ class BoardQuery(
             .build()
     }
 
+    fun loadHighFrequencyWords(minDocCount: Int): Map<String,*> {
+        //NativeQuery for Aggregation
+        return MapBuilder.of("size","0","aggregations" ,
+                    MapBuilder.of("top_words",
+                        MapBuilder.of("terms",
+                             MapBuilder.of("field", "content", "min_doc_count", minDocCount))))
+    }
 
 }
