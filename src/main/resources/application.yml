@@ -1,3 +1,24 @@
 elastic:
-  host: 103.218.159.37
+  host: localhost
   port: 9200
+
+spring:
+  elasticsearch:
+    uris: localhost:9200
+
+logging:
+  level:
+    com:
+      example: debug
+    sql: trace
+    org:
+      springframework:
+        data:
+          elasticsearch:
+            core:
+              ReactiveElasticsearchTemplate: trace
+              ReactiveElasticsearchClient: trace
+              ReactiveElasticsearchRestTemplate: trace
+
+server:
+  port: 4383
