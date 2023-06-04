@@ -1,6 +1,5 @@
 package eom.demo.ejh_board.service
 
-import co.elastic.clients.util.MapBuilder
 import eom.demo.ejh_board.controller.BoardService
 import eom.demo.ejh_board.exception.InvalidInputException
 import eom.demo.ejh_board.exception.NotFoundException
@@ -108,7 +107,7 @@ class BoardServiceImpl(
             requestService.loadCount("similarity.board")
                 .flatMap { it.count.toMono() }
                 .flatMap { cnt ->
-                    loadRelatedWords((cnt * 0.4).toInt())
+                    loadRelatedWords((cnt * 0.4).toInt() , "bigger")
                 }
         } else { InvalidInputException("유효하지 않은 요청 형식입니다.").toMono() }
     }
@@ -130,34 +129,106 @@ class BoardServiceImpl(
         ))
     }
 
-    fun loadRelatedWords(fortyPercentage: Int) : Mono<List<String>> {
+    /**
+     * @description 연관 게시글을 찾습니다.
+     */
+
+    fun isItReferredPost(targetPostId: String, otherPostId: String): Mono<Boolean> {
+        /**
+         * @need
+         * i) target board's word list with frequency
+         * ii) find similar words in other post with target board's word list
+         */
+
+        val targetPostWords = queries.loadHighFrequencyWords(1, targetPostId).toMono()
+            .flatMap { query ->
+                getResultFromAggregation(
+                    requestService.searchHighFrequencyWords("similarity.board", query),
+                    "top_words"
+                )
+            }
+            .flatMapIterable { it }
+            .flatMap { word ->
+                val key = word["key"] as String
+                val docCount = word["doc_count"] as Int
+                key.toMono()
+            }
+            .collectList()
+
+        val otherPostWords = queries.loadHighFrequencyWords(1,  otherPostId).toMono()
+            .flatMap { query ->
+                getResultFromAggregation(
+                    requestService.searchHighFrequencyWords("similarity.board", query),
+                    "top_words"
+                )
+            }
+            .flatMapIterable { it }
+            .flatMap { word ->
+                val key = word["key"] as String
+                val docCount = word["doc_count"] as Int
+                key.toMono()
+            }
+            .collectList()
+
+        return Mono.zip(targetPostWords, otherPostWords)
+            .flatMap{
+                it.t1.intersect(it.t2).toMono()
+            }
+            .flatMap { intersectedSet ->
+                if(intersectedSet.size >= 2) {
+                    true.toMono()
+                }
+                else {
+                    false.toMono()
+                }
+            }
+    }
+
+    fun loadRelatedWords(percentage: Int, operation: String) : Mono<List<String>> {
        return queries.loadHighFrequencyWords(1).toMono()
                     .flatMap { reqBody ->
-                        requestService.searchHighFrequencyWords("similarity.board", reqBody)
-                            .flatMap { it["aggregations"].toMono() }
-                            .flatMap {
-                                val topWords = it as Map<String, Any>
-                                val buckets = topWords["top_words"] as Map<String, Any>
-                                buckets["buckets"].toMono()
-                            }
-                            .flatMap { buckets ->
-                                val bucketList = buckets as List<Map<String, Any>>
-                                val words = bucketList.toList()
-                                words.toMono()
-                            }
+                        getResultFromAggregation(
+                                requestService.searchHighFrequencyWords("similarity.board", reqBody) ,
+                            "top_words")
                             .flatMapIterable { it }
                             .flatMap { word ->
                                 val key = word["key"] as String
                                 val docCount = word["doc_count"] as Int
-                                if(docCount <= fortyPercentage){
-                                    key.toMono()
+                                if(operation == "bigger") {
+                                    if(docCount >= percentage){
+                                        key.toMono()
+                                    }
+                                    else {
+                                        Mono.empty()
+                                    }
                                 }
                                 else {
-                                    Mono.empty()
+                                    if(docCount <= percentage){
+                                        key.toMono()
+                                    }
+                                    else {
+                                        Mono.empty()
+                                    }
                                 }
                             }
                             .collectList()
                     }
+    }
+
+
+    private fun getResultFromAggregation(aggs: Mono<Map<String, *>>, aggName: String) : Mono<List<Map<String, Any>>> {
+        return aggs
+                .flatMap { it["aggregations"].toMono() }
+                .flatMap {
+                    val target = it as Map<String, Any>
+                    val buckets = target[aggName] as Map<String,Any>
+                    buckets["buckets"].toMono()
+                }
+                .flatMap { buckets ->
+                    val bucketList = buckets as List<Map<String, Any>>
+                    val words = bucketList.toMono()
+                    words.toMono()
+                }
     }
 
 }

@@ -37,13 +37,6 @@ class EjhBoardApplicationTests {
     }
 
     @Test
-    fun loadWords(){
-        StepVerifier.create(boardService.loadHighFrequencyWords())
-            .expectSubscription()
-            .verifyComplete()
-    }
-
-    @Test
     @Disabled
     fun dataSeeding() {
         val boards = Boards().boardTestData

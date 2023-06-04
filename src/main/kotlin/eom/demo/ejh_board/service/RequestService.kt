@@ -23,12 +23,14 @@ class RequestService (
             .retrieve()
             .bodyToMono(ElasticSearchCountResponse::class.java)
 
-    fun searchHighFrequencyWords(index: String, query: Map<String, *>): Mono<Map<String,*>> =
-        webClient.post()
-            .uri("/$index/_search")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(query)
-            .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<Map<String,*>>() {})
+    fun searchHighFrequencyWords(index: String, query: Map<String, *>): Mono<Map<String,*>> {
+        return webClient.post()
+                   .uri("/$index/_search")
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .bodyValue(query)
+                   .retrieve()
+                   .bodyToMono(object : ParameterizedTypeReference<Map<String, *>>() {})
+
+    }
 
 }

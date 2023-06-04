@@ -48,12 +48,29 @@ class BoardQuery(
             .build()
     }
 
-    fun loadHighFrequencyWords(minDocCount: Int): Map<String,*> {
+    fun loadHighFrequencyWords(minDocCount: Int, targetPost: String? = null): Map<String,*> {
         //NativeQuery for Aggregation
-        return MapBuilder.of("size","0","aggregations" ,
-                    MapBuilder.of("top_words",
-                        MapBuilder.of("terms",
-                             MapBuilder.of("field", "content", "min_doc_count", minDocCount))))
+        val targetMap = targetPost ?. let {
+            MapBuilder.of(
+                "query",
+                MapBuilder.of(
+                    "match",
+                    MapBuilder.of("_id", targetPost)
+                )
+            )
+        } ?: run {
+            MapBuilder.of("query",
+                MapBuilder.of("match_all" ,
+                      mutableMapOf()
+                    ))
+        }
+
+        val defaultQueryMap = MapBuilder.of("size","0","aggregations" ,
+                                MapBuilder.of("top_words",
+                                    MapBuilder.of("terms",
+                                        MapBuilder.of("field", "content", "min_doc_count", minDocCount))))
+
+        return targetMap + defaultQueryMap
     }
 
 }
