@@ -116,7 +116,31 @@ class BoardServiceImpl(
      * @description 게시물 등록 , 수정시 유사성 높은 게시물을 연결합니다
      */
     fun updateReferred(boards: List<Board>): Flux<Board> {
-        TODO("유사성 높은 게시물을 연결합니다")
+        return Flux.fromIterable(boards)
+            .flatMap { targetPost ->
+                val targetId = targetPost.boardId!!
+                val withoutTargetPost = boards.filter { it.boardId != targetId }
+                Flux.fromIterable(withoutTargetPost)
+                    .flatMap { otherPost ->
+                        val otherId = otherPost.boardId!!
+                        isItReferredPost(targetId, otherId)
+                            .flatMap {
+                                if(it){
+                                    ReferredInfo(
+                                        otherId,0.0
+                                    ).toMono()
+                                }
+                                else {
+                                    Mono.empty()
+                                }
+                            }
+                    }
+                    .collectList()
+                    .flatMap { referredList ->
+                        saveReferredBoard(targetId, referredList)
+                            .flatMap { targetPost.toMono() }
+                    }
+            }
     }
 
     /**
